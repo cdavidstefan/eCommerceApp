@@ -29,4 +29,22 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// using - our scope will be disposed along with anything we are using inside inside this scope.
+// we know the disposed method will be called after we finished this.
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+var context = services.GetRequiredService<StoreContext>();
+var logger = services.GetRequiredService<ILogger<Program>>();
+try
+{
+    await context.Database.MigrateAsync();
+    await StoreContextSeed.SeedAsync(context);
+}
+catch (Exception ex)
+{
+    logger.LogError(ex, "An error has occured during migration");    
+}
+
+
 app.Run();
